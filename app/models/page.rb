@@ -188,8 +188,10 @@ class Page < ActiveRecord::Base
       Dir["#{RADIANT_ROOT}/app/models/*_page.rb"].each do |page|
         $1.camelize.constantize if page =~ %r{/([^/]+)\.rb}
       end
-      Page.find_by_sql("SELECT DISTINCT class_name AS klass_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL").each do |p|
-        eval(%Q{class #{p.klass_name} < Page; def self.missing?; true end end}, TOPLEVEL_BINDING) unless Object.const_defined?(p.klass_name)
+      unless Page.connection.tables.empty? # Haven't bootstrapped yet
+        Page.connection.select_values("SELECT DISTINCT class_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL").each do |p|
+          eval(%Q{class #{p} < Page; def self.missing?; true end end}, TOPLEVEL_BINDING) unless Object.const_defined?(p)
+        end
       end
     end
     
@@ -197,7 +199,7 @@ class Page < ActiveRecord::Base
       default_parts = config['defaults.page.parts'].to_s.strip.split(/\s*,\s*/)
       page = new
       default_parts.each do |name|
-        page.parts << PagePart.new(:name => name)
+        page.parts << PagePart.new(:name => name, :filter_id => config['defaults.page.filter'])
       end
       default_status = config['defaults.page.status']
       page.status = Status[default_status] if default_status

@@ -428,7 +428,14 @@ describe Page, "class" do
   it 'should allow initialization with default page status' do
     @page = Page.new_with_defaults({ 'defaults.page.status' => 'published' })
     @page.status.should == Status[:published]
-  end  
+  end
+  
+  it 'should allow initialization with default filter' do
+    @page = Page.new_with_defaults({ 'defaults.page.filter' => 'Textile', 'defaults.page.parts' => 'a, b, c' })
+    @page.parts.each do |part|
+      part.filter_id.should == 'Textile'
+    end
+  end
   
   it 'should allow you to get the class name of a descendant class with a string' do
     ["", nil, "Page"].each do |value|
@@ -444,6 +451,17 @@ describe Page, "class" do
     Page.is_descendant_class_name?("InvalidPage").should == false
   end
   
+end
+
+describe Page, "loading subclasses before bootstrap" do
+  before :each do
+    Page.connection.should_receive(:tables).and_return([])
+  end
+  
+  it "should not attempt to search for missing subclasses" do
+    Page.connection.should_not_receive(:select_values).with("SELECT DISTINCT class_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL")
+    Page.load_subclasses
+  end
 end
 
 describe Page, "class which is applied to a page but not defined" do

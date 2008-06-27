@@ -56,8 +56,11 @@ describe "Standard Tags" do
     end
 
     it 'should not list virtual pages' do
-      page.should render('<r:children:each><r:slug /> </r:children:each>').as('a b c d e f g h i j ')
-      page.should render('<r:children:each status="all"><r:slug /> </r:children:each>').as('a b c d e f g h i j draft ')
+      page.should render('<r:children:each by="title"><r:slug /> </r:children:each>').as('a b c d e f g h i j ')
+    end
+    
+    it 'should include virtual pages with status="all"' do
+      page.should render('<r:children:each status="all" by="slug"><r:slug /> </r:children:each>').as('a b c d draft e f g h i j ')
     end
 
     it 'should error with invalid "limit" attribute' do
@@ -257,6 +260,14 @@ describe "Standard Tags" do
     it "should not render the contained block if the specified part does not exist" do
       page.should render('<r:if_content part="asdf">true</r:if_content>').as('')
     end
+    
+    it "should render the contained block only if all specified parts (as separated by comma) exist" do
+      page(:home).should render('<r:if_content part="body, extended">true</r:if_content>').as('true')
+    end
+    
+    it "should not render the contained block if at least one of the specified parts (as separated by comma) does not exist" do
+      page(:home).should render('<r:if_content part="body, madeup">true</r:if_content>').as('')
+    end
   end
 
   describe "<r:unless_content>" do
@@ -270,6 +281,14 @@ describe "Standard Tags" do
 
     it "should render the contained block if the specified part does not exist" do
       page.should render('<r:unless_content part="asdf">false</r:unless_content>').as('false')
+    end
+    
+    it "should not render the contained block if at least one specified part (as separated by comma) exists" do
+      page(:home).should render('<r:unless_content part="body, madeup">true</r:unless_content>').as('')
+    end
+    
+    it "should render the contained block if none of the specified parts (as separated by comma) exist" do
+      page(:home).should render('<r:unless_content part="imaginary, madeup">true</r:unless_content>').as('true')
     end
   end
 

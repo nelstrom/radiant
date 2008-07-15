@@ -121,11 +121,11 @@ module Registry
     def checkout_command
       "git clone #{url} #{name}"
     end
-    
+
     def abstract?
       false
     end
-    
+
     def matches?
       self.url =~ /\.?git/
     end
@@ -175,7 +175,7 @@ module Radiant
     module Script
       class << self
         def execute(args)
-          command = args.shift
+          command = args.shift || 'help'
           const_get(command.camelize).new(args)
         end
       end
@@ -231,6 +231,67 @@ module Radiant
             puts "#{extension} is not installed."
           end
         end
+      end
+
+      class Help
+        include Util
+        def initialize(args=[])
+          helpcmd = args.shift || 'basic'
+          send helpcmd
+        end
+
+        def basic
+          output <<-HELP
+          Usage: script/extension [command] [arguments]
+
+            Commands:
+
+              install     Install an extension from the registry.
+              uninstall   Uninstall a previously installed extension.
+              help        Display help for commands
+
+          Type 'script/extension help [command]' for information about that
+          command.
+          HELP
+        end
+        alias :help :basic
+
+        def install
+          output <<-HELP
+          Usage: script/extension install extension_name
+
+            - Installs an extension from the information in the registry.
+
+          HELP
+        end
+
+        def uninstall
+          output <<-HELP
+          Usage: script/extension uninstall extension_name
+
+            - Uninstalls a previously installed extension.
+
+          HELP
+        end
+
+        private
+          def output(string='')
+            $stdout.puts strip_leading_whitespace(string)
+          end
+
+          def strip_leading_whitespace(text)
+            text = text.dup
+            text.gsub!("\t", "  ")
+            lines = text.split("\n")
+            leading = lines.map do |line|
+              unless line =~ /^\s*$/
+                 line.match(/^(\s*)/)[0].length
+              else
+                nil
+              end
+            end.compact.min
+            lines.inject([]) {|ary, line| ary << line.sub(/^[ ]{#{leading}}/, "")}.join("\n")
+          end
       end
     end
   end

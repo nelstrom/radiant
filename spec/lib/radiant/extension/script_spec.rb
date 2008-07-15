@@ -8,11 +8,19 @@ describe "Radiant::Extension::Script" do
 
     Radiant::Extension::Script::Uninstall.should_receive(:new)
     Radiant::Extension::Script.execute ['uninstall']
+    
+    Radiant::Extension::Script::Help.should_receive(:new)
+    Radiant::Extension::Script.execute ['help']
   end
 
   it "should pass the command-line args to the subscript" do
     Radiant::Extension::Script::Install.should_receive(:new).with(['page_attachments'])
     Radiant::Extension::Script.execute ['install', 'page_attachments']
+  end
+
+  it "should run the help command if no command is passed" do
+    Radiant::Extension::Script::Help.should_receive(:new).with([])
+    Radiant::Extension::Script.execute []
   end
 end
 
@@ -95,6 +103,17 @@ describe "Radiant::Extension::Script::Uninstall" do
 
   it "should fail if an extension name is not given" do
     lambda { Radiant::Extension::Script::Uninstall.new []}.should raise_error
+  end
+end
+
+
+describe "Radiant::Extension::Script::Help" do
+  it "should output a help message for each command" do
+    messages = %w{basic install uninstall help}
+    $stdout.should_receive(:puts).exactly(messages.size).times
+    messages.each do |m|
+      Radiant::Extension::Script::Help.new([m])
+    end
   end
 end
 

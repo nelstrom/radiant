@@ -158,7 +158,7 @@ module Registry
     def unpack
       packed  = filename =~ /gz/ ? 'z' : ''
       output = `cd #{Dir.tmpdir}; tar xvf#{packed} #{filename}`
-      self.path = output.split(/\n/).first.split('/').first
+      self.path = File.join(Dir.tmpdir, output.split(/\n/).first.split('/').first)
     end
   end
 

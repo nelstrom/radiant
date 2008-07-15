@@ -303,21 +303,28 @@ describe "Registry::Tarball" do
   end
 
   it "should unpack the tarball with compression" do
-    pending
+    @tar.should_receive(:`).with(/tar xvfz example-1.0.0.tar.gz/).and_return('example-1.0.0/example_extension.rb\n')
+    @tar.unpack
+    @tar.path.should =~ /example-1\.0\.0$/
   end
 
   it "should unpack the tarball without compression" do
-    pending
+    @tar.url = @tar.url.sub(/.gz$/, '')
+    @tar.should_receive(:`).with(/tar xvf example-1.0.0.tar/).and_return('example-1.0.0/example_extension.rb\n')
+    @tar.unpack
+    @tar.path.should =~ /example-1\.0\.0$/
   end
 end
 
 describe "Registry::Zip" do
   before :each do
-    @extension = mock("Extension", :name => 'example', :download_url => 'http://localhost/example-1.0.0.gem')
+    @extension = mock("Extension", :name => 'example', :download_url => 'http://localhost/example-1.0.0.zip')
     @zip = Registry::Zip.new(@extension)
   end
 
   it "should unpack the zip" do
-    pending
+    @zip.should_receive(:`).with(/unzip example-1.0.0.zip -d example/).and_return('')
+    @zip.unpack
+    @zip.path.should =~ /example$/
   end
 end

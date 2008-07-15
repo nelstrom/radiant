@@ -57,7 +57,6 @@ describe "Radiant::Extension::Script::Util" do
 end
 
 describe "Radiant::Extension::Script::Install" do
-
   before :each do
     @extension = mock('Extension', :install => true, :name => 'page_attachments')
     Registry::Extension.stub!(:find).and_return([@extension])
@@ -79,7 +78,6 @@ describe "Radiant::Extension::Script::Install" do
 end
 
 describe "Radiant::Extension::Script::Uninstall" do
-
   before :each do
     @extension = mock('Extension', :uninstall => true, :name => 'archive')
     Registry::Extension.stub!(:find).and_return([@extension])

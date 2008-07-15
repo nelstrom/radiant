@@ -121,6 +121,14 @@ module Registry
     def checkout_command
       "git clone #{url} #{name}"
     end
+    
+    def abstract?
+      false
+    end
+    
+    def matches?
+      self.url =~ /\.?git/
+    end
   end
 
   class Subversion < Checkout

@@ -1,100 +1,163 @@
 require 'active_resource'
+require 'tmpdir'
+require 'fileutils'
+
 module Registry
   class Extension < ActiveResource::Base
     self.site = ENV['REGISTRY_URL'] || "http://ext.radiantcms.org/"
 
     def install
+      install_type.constantize.new(self).install
     end
 
     def uninstall
+      Uninstaller.new(self).uninstall
     end
   end
 
-  class Installer
-    attr_accessor :url, :path
-    def initialize(url='',path=Dir.tmpdir)
-      self.url, self.path = url, path
+  class Action
+    def rake(command)
+      `rake #{command} RAILS_ENV=#{RAILS_ENV}`
     end
-    
-    def abstract?
-      true
+  end
+
+  class Installer < Action
+    attr_accessor :url, :path, :name
+    def initialize(url, name)
+      self.url, self.name = url, name
     end
-    
-    def matches?
-      false
+
+    def install
+      copy_to_vendor_extensions
+      migrate
+      update
     end
-    
+
     def copy_to_vendor_extensions
+      FileUtils.cp_r(self.path, File.expand_path(File.join(RAILS_ROOT, 'vendor', 'extensions', name)))
+      FileUtils.rm_r(self.path)
+    end
+
+    def migrate
+      rake "radiant:extensions:#{name}:migrate"
+    end
+
+    def update
+      rake "radiant:extensions:#{name}:update"
+    end
+  end
+
+  class Uninstaller < Action
+    attr_accessor :name
+    def initialize(extension)
+      self.name = extension.name
+    end
+
+    def uninstall
+      migrate_down
+      remove_extension_directory
+      cleanup_environment
+    end
+
+    def migrate_down
+      rake "radiant:extensions:#{name}:migrate VERSION=0"
+    end
+
+    def remove_extension_directory
+      FileUtils.rm_r(File.join(RAILS_ROOT, 'vendor', 'extensions', name))
+    end
+
+    def cleanup_environment
+      # Maybe in the future clear it out of the config.extensions array
     end
   end
 
   class Checkout < Installer
+    def initialize(extension)
+      super(extension.repository_url, extension.name)
+    end
+
+    def checkout_command
+      raise "Not Implemented!"
+    end
+
     def install
       checkout
-      copy_to_vendor_extensions
+      super
+    end
+
+    def checkout
+      self.path = File.join(Dir.tmpdir, name)
+      system "cd #{Dir.tmpdir}; #{checkout_command}"
     end
   end
 
   class Download < Installer
+    def initialize(extension)
+      super(extension.download_url, extension.name)
+    end
+
     def install
       download
       unpack
-      copy_to_vendor_extensions
+      super
     end
-    
+
+    def unpack
+      raise "Not Implemented!"
+    end
+
+    def filename
+      File.basename(self.url)
+    end
+
     def download
       require 'open-uri'
-      File.open(File.join(self.path, File.basename(self.url)), 'w') {|f| f.write open(self.url).read }
+      File.open(File.join(Dir.tmpdir, self.filename), 'w') {|f| f.write open(self.url).read }
     end
   end
 
   class Git < Checkout
     def checkout_command
-      "git clone #{url}"
-    end
-    
-    def abstract?
-      false
-    end
-    
-    def matches?
-      self.url =~ /\.?git/
+      "git clone #{url} #{name}"
     end
   end
 
   class Subversion < Checkout
     def checkout_command
-      "svn checkout #{url}"
-    end
-    
-    def abstract?
-      false
-    end
-    
-    def matches?
-      self.url !~ /\.?git/
+      "svn checkout #{url} #{name}"
     end
   end
 
   class Gem < Download
-    def unpack
-      
+    def download
+      # Don't download the gem if it's already installed
+      begin
+        gem filename.split('-').first
+      rescue ::Gem::LoadError
+        super
+        `gem install #{filename}`
+      end
     end
-    
-    def abstract?
-      false
+
+    def unpack
+      output = `cd #{Dir.tmpdir}; gem unpack #{filename.split('-').first}`
+      self.path = output.match(/'(.*)'/)[1]
     end
   end
 
   class Tarball < Download
-    def abstract?
-      false
+    def unpack
+      packed  = filename =~ /gz/ ? 'z' : ''
+      output = `cd #{Dir.tmpdir}; tar xvf#{packed} #{filename}`
+      self.path = output.split(/\n/).first.split('/').first
     end
   end
 
   class Zip < Download
-    def abstract?
-      false
+    def unpack
+      output = `cd #{Dir.tmpdir}; unzip #{filename} -d #{name}`
+      self.path = File.join(Dir.tmpdir, name)
     end
   end
 end

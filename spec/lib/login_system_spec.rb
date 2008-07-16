@@ -37,7 +37,7 @@ describe LoginRequiredController = StubController.subclass('LoginRequiredControl
   
   it "should store location" do
     get 'protected_action'
-    session[:return_to].should match(/login_required\/protected_action/)
+    session[:return_to].should match(/login_required.*\/protected_action/)
   end
 end
 

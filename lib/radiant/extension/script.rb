@@ -7,7 +7,7 @@ module Registry
     self.site = ENV['REGISTRY_URL'] || "http://ext.radiantcms.org/"
 
     def install
-      install_type.constantize.new(self).install
+      Registry.const_get(install_type).new(self).install
     end
 
     def uninstall
@@ -17,7 +17,7 @@ module Registry
 
   class Action
     def rake(command)
-      `rake #{command} RAILS_ENV=#{RAILS_ENV}`
+      system "rake #{command} RAILS_ENV=#{RAILS_ENV}"
     end
   end
 
@@ -122,12 +122,11 @@ module Registry
       "git clone #{url} #{name}"
     end
 
-    def abstract?
-      false
-    end
-
-    def matches?
-      self.url =~ /\.?git/
+    def checkout
+      super
+      if File.exist?("#{path}/.gitmodules")
+        system "cd #{path} && git submodule init && git submodule update"
+      end
     end
   end
 
@@ -144,7 +143,7 @@ module Registry
         gem filename.split('-').first
       rescue ::Gem::LoadError
         super
-        `gem install #{filename}`
+        system "gem install #{filename}"
       end
     end
 

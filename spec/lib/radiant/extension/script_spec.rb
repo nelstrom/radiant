@@ -66,18 +66,18 @@ end
 
 describe "Radiant::Extension::Script::Install" do
   before :each do
-    @extension = mock('Extension', :install => true, :name => 'page_attachments')
+    @extension = mock('Extension', :install => true, :name => 'testaroo')
     Registry::Extension.stub!(:find).and_return([@extension])
   end
 
   it "should read the extension name from the command line" do
-    @install = Radiant::Extension::Script::Install.new ['page_attachments']
-    @install.extension_name.should == 'page_attachments'
+    @install = Radiant::Extension::Script::Install.new ['testaroo']
+    @install.extension_name.should == 'testaroo'
   end
 
   it "should attempt to find the extension and install it" do
     @extension.should_receive(:install).and_return(true)
-    @install = Radiant::Extension::Script::Install.new ['page_attachments']
+    @install = Radiant::Extension::Script::Install.new ['testaroo']
   end
 
   it "should fail if an extension name is not given" do
@@ -123,7 +123,7 @@ describe "Registry::Action" do
   end
 
   it "should shell out with the specified rake task" do
-    @action.should_receive(:`).with("rake sample RAILS_ENV=#{RAILS_ENV}")
+    @action.should_receive(:system).with("rake sample RAILS_ENV=#{RAILS_ENV}")
     @action.rake('sample')
   end
 end
@@ -296,7 +296,7 @@ describe "Registry::Gem" do
     File.should_receive(:open).with(/example-1.0.0\.gem/, 'w').and_yield(@file)
     @gem.should_receive(:open).and_return(StringIO.new('test'))
     @file.should_receive(:write).with('test')
-    @gem.should_receive(:`).with("gem install example-1.0.0.gem")
+    @gem.should_receive(:system).with("gem install example-1.0.0.gem")
     @gem.download
   end
 
@@ -304,7 +304,7 @@ describe "Registry::Gem" do
     @gem.should_receive(:gem).and_return(true)
     File.should_not_receive(:open)
     @gem.should_not_receive(:open)
-    @gem.should_not_receive(:`)
+    @gem.should_not_receive(:system).with("gem install example-1.0.0.gem")
     @gem.download
   end
 

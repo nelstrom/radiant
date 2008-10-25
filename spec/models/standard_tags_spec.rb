@@ -235,6 +235,15 @@ describe "Standard Tags" do
       page.should render("<r:children order='desc' limit='5'><r:each order='asc'><r:title/></r:each><r:each><r:title/></r:each></r:children>").as('abcdejihgf')
     end
   end
+  
+  describe "<r:children:each> edge conditions" do
+    it "should do something special on first child" do
+      page.should render("<r:children:each><r:title/><r:if_first>(first!)</r:if_first> </r:children:each>").as('a(first!) b c d e f g h i j')
+    end
+    it "should do something special on last child" do
+      page.should render("<r:children:each><r:title/><r:if_last>(last!)</r:if_last> </r:children:each>").as('a b c d e f g h i j(last!) ')
+    end
+  end
 
   describe "<r:content>" do
     it "should render the 'body' part by default" do

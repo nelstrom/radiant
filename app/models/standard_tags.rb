@@ -64,11 +64,7 @@ module StandardTags
   }
   tag 'children:first' do |tag|
     options = children_find_options(tag)
-    if tag.attr.empty? or options == tag.locals.options
-      children = tag.locals.children_filtered
-    else
-      children = tag.locals.children.find(:all, options)
-    end
+    children = children_filtered(tag,options)
     if first = children.first
       tag.locals.page = first
       tag.expand
@@ -85,11 +81,7 @@ module StandardTags
   }
   tag 'children:last' do |tag|
     options = children_find_options(tag)
-    if tag.attr.empty? or options == tag.locals.options
-      children = tag.locals.children_filtered
-    else
-      children = tag.locals.children.find(:all, options)
-    end
+    children = children_filtered(tag,options)
     if last = children.last
       tag.locals.page = last
       tag.expand
@@ -110,11 +102,7 @@ module StandardTags
   }
   tag 'children:each' do |tag|
     options = children_find_options(tag)
-    if tag.attr.empty? or options == tag.locals.options
-      children = tag.locals.children_filtered
-    else
-      children = tag.locals.children.find(:all, options)
-    end
+    children = children_filtered(tag,options)
     result = []
     tag.locals.previous_headers = {}
     children.each do |item|
@@ -851,25 +839,12 @@ module StandardTags
 
   private
   
-    def default_options(tag)
-      tag.attr["by"] ||= 'published_at'
-      tag.attr["order"] ||= 'asc'
-      tag.attr["status"] ||= ( dev?(tag.globals.page.request) ? 'all' : 'published')
-    end
-    
-    def default_hash
-      {
-        "by" => "published_at", 
-        "order" => 'asc', 
-        "status" => ( dev?(tag.globals.page.request) ? 'all' : 'published')
-      }
-    end
-    
-    def default_options
-      {
-        :order=>"published_at ASC",
-        :conditions=>["(virtual = ?) and (status_id = ?)", false, 100]
-      }
+    def children_filtered(tag,options)
+      if tag.attr.empty? or options == tag.locals.options
+        tag.locals.children_filtered
+      else
+        tag.locals.children.find(:all, options)
+      end
     end
 
     def children_find_options(tag)

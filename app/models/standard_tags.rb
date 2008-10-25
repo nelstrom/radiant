@@ -41,7 +41,9 @@ module StandardTags
     <pre><code><r:children>...</r:children></code></pre>
   }
   tag 'children' do |tag|
+    tag.locals.options = children_find_options(tag)
     tag.locals.children = tag.locals.page.children
+    tag.locals.children_filtered = tag.locals.page.children.find(:all, tag.locals.options.clone)
     tag.expand
   end
 
@@ -62,7 +64,11 @@ module StandardTags
   }
   tag 'children:first' do |tag|
     options = children_find_options(tag)
-    children = tag.locals.children.find(:all, options)
+    if tag.attr.empty? or options == tag.locals.options
+      children = tag.locals.children_filtered
+    else
+      children = tag.locals.children.find(:all, options)
+    end
     if first = children.first
       tag.locals.page = first
       tag.expand
@@ -79,7 +85,11 @@ module StandardTags
   }
   tag 'children:last' do |tag|
     options = children_find_options(tag)
-    children = tag.locals.children.find(:all, options)
+    if tag.attr.empty? or options == tag.locals.options
+      children = tag.locals.children_filtered
+    else
+      children = tag.locals.children.find(:all, options)
+    end
     if last = children.last
       tag.locals.page = last
       tag.expand
@@ -100,10 +110,14 @@ module StandardTags
   }
   tag 'children:each' do |tag|
     options = children_find_options(tag)
+    if tag.attr.empty? or options == tag.locals.options
+      children = tag.locals.children_filtered
+    else
+      children = tag.locals.children.find(:all, options)
+    end
     result = []
-    children = tag.locals.children
     tag.locals.previous_headers = {}
-    children.find(:all, options).each do |item|
+    children.each do |item|
       tag.locals.child = item
       tag.locals.page = item
       result << tag.expand
@@ -836,6 +850,27 @@ module StandardTags
   end
 
   private
+  
+    def default_options(tag)
+      tag.attr["by"] ||= 'published_at'
+      tag.attr["order"] ||= 'asc'
+      tag.attr["status"] ||= ( dev?(tag.globals.page.request) ? 'all' : 'published')
+    end
+    
+    def default_hash
+      {
+        "by" => "published_at", 
+        "order" => 'asc', 
+        "status" => ( dev?(tag.globals.page.request) ? 'all' : 'published')
+      }
+    end
+    
+    def default_options
+      {
+        :order=>"published_at ASC",
+        :conditions=>["(virtual = ?) and (status_id = ?)", false, 100]
+      }
+    end
 
     def children_find_options(tag)
       attr = tag.attr.symbolize_keys

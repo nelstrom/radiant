@@ -143,6 +143,39 @@ module StandardTags
     end
     result
   end
+  
+  desc %{
+    When cycling through @<children:each/>@, the contents of this tag will be output
+    only for the first child.
+  }
+  tag 'children:each:if_first' do |tag|
+    children = tag.locals.children_filtered
+    if children.first == tag.locals.child
+      tag.expand
+    end
+  end
+  
+  desc %{
+    When cycling through @<children:each/>@, the contents of this tag will be output
+    only for the last child.
+  }
+  tag 'children:each:if_last' do |tag|
+    children = tag.locals.children_filtered
+    if children.last == tag.locals.child
+      tag.expand
+    end
+  end
+  
+  desc %{
+    When cycling through @<children:each/>@, the contents of this tag will be output
+    only for the first and the last children.
+  }
+  tag 'children:each:if_first_or_last' do |tag|
+    children = tag.locals.children_filtered
+    if children.first == tag.locals.child or children.last == tag.locals.child
+      tag.expand
+    end
+  end
 
   desc %{
     Page attribute tags inside of this tag refer to the current child. This is occasionally
@@ -874,7 +907,7 @@ module StandardTags
       if tag.attr.empty? or options == tag.locals.options
         tag.locals.children_filtered
       else
-        tag.locals.children.find(:all, options)
+        tag.locals.children_filtered = tag.locals.children.find(:all, options)
       end
     end
     

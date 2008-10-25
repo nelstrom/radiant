@@ -238,10 +238,19 @@ describe "Standard Tags" do
   
   describe "<r:children:each> edge conditions" do
     it "should do something special on first child" do
-      page.should render("<r:children:each><r:title/><r:if_first>(first!)</r:if_first> </r:children:each>").as('a(first!) b c d e f g h i j')
+      page.should render("<r:children:each><r:title/><r:if_first>(first!)</r:if_first> </r:children:each>").as('a(first!) b c d e f g h i j ')
     end
     it "should do something special on last child" do
       page.should render("<r:children:each><r:title/><r:if_last>(last!)</r:if_last> </r:children:each>").as('a b c d e f g h i j(last!) ')
+    end
+    it "should do something special on first and last child" do
+      page.should render("<r:children:each><r:title/><r:if_first_or_last>(<r:if_first>first</r:if_first><r:if_last>last</r:if_last>)</r:if_first_or_last> </r:children:each>").as('a(first) b c d e f g h i j(last) ')
+    end
+    it "should treat a single item as first and last" do
+      page.should render("<r:children:each limit='1'><r:title/><r:if_first_or_last>(<r:if_first>first</r:if_first><r:if_last>last</r:if_last>)</r:if_first_or_last> </r:children:each>").as('a(firstlast) ')
+    end
+    it "should combine r:cycle with r:first and r:last" do
+      page.should render("<r:children:each><r:title/>(<r:cycle values='x, y, z'/> <r:if_first>first </r:if_first><r:if_last>last </r:if_last>) </r:children:each>").as('a(x first ) b(y ) c(z ) d(x ) e(y ) f(z ) g(x ) h(y ) i(z ) j(x last ) ')
     end
   end
 

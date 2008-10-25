@@ -89,43 +89,53 @@ describe "Standard Tags" do
     it 'should error with invalid "order" attribute' do
       message = %{`order' attribute of `each' tag must be set to either "asc" or "desc"}
       page.should render(page_children_each_tags(%{order="asdf"})).with_error(message)
+      page.should render(page_children_each_tags(%{order="asdf"},true)).with_error(message)
     end
 
     it "should limit the number of children when given a 'limit' attribute" do
       page.should render(page_children_each_tags(%{limit="5"})).as('a b c d e ')
+      page.should render(page_children_each_tags(%{limit="5"},true)).as('a b c d e ')
     end
 
     it "should limit and offset the children when given 'limit' and 'offset' attributes" do
       page.should render(page_children_each_tags(%{offset="3" limit="5"})).as('d e f g h ')
+      page.should render(page_children_each_tags(%{offset="3" limit="5"},true)).as('d e f g h ')
     end
 
     it "should change the sort order when given an 'order' attribute" do
       page.should render(page_children_each_tags(%{order="desc"})).as('j i h g f e d c b a ')
+      page.should render(page_children_each_tags(%{order="desc"},true)).as('j i h g f e d c b a ')
     end
 
     it "should sort by the 'by' attribute" do
       page.should render(page_children_each_tags(%{by="breadcrumb"})).as('f e d c b a j i h g ')
+      page.should render(page_children_each_tags(%{by="breadcrumb"},true)).as('f e d c b a j i h g ')
     end
 
     it "should sort by the 'by' attribute according to the 'order' attribute" do
       page.should render(page_children_each_tags(%{by="breadcrumb" order="desc"})).as('g h i j a b c d e f ')
+      page.should render(page_children_each_tags(%{by="breadcrumb" order="desc"},true)).as('g h i j a b c d e f ')
     end
 
     describe 'with "status" attribute' do
       it "set to 'all' should list all children" do
         page.should render(page_children_each_tags(%{status="all"})).as("a b c d e f g h i j draft ")
+        page.should render(page_children_each_tags(%{status="all"},true)).as("a b c d e f g h i j draft ")
       end
 
       it "set to 'draft' should list only children with 'draft' status" do
         page.should render(page_children_each_tags(%{status="draft"})).as('draft ')
+        page.should render(page_children_each_tags(%{status="draft"},true)).as('draft ')
       end
 
       it "set to 'published' should list only children with 'draft' status" do
         page.should render(page_children_each_tags(%{status="published"})).as('a b c d e f g h i j ')
+        page.should render(page_children_each_tags(%{status="published"},true)).as('a b c d e f g h i j ')
       end
 
       it "set to an invalid status should render an error" do
         page.should render(page_children_each_tags(%{status="askdf"})).with_error("`status' attribute of `each' tag must be set to a valid status")
+        page.should render(page_children_each_tags(%{status="askdf"},true)).with_error("`status' attribute of `each' tag must be set to a valid status")
       end
     end
   end
@@ -175,6 +185,15 @@ describe "Standard Tags" do
       page.should render(page_children_first_tags(%{by="breadcrumb" order="desc"})).as('g')
     end
 
+    it 'should receive scope set in <r:children> tag' do
+      page.should render(page_children_first_tags(nil,true)).as('a')
+      page.should render(page_children_first_tags(%{limit="5"},true)).as('a')
+      page.should render(page_children_first_tags(%{offset="3" limit="5"},true)).as('d')
+      page.should render(page_children_first_tags(%{order="desc"},true)).as('j')
+      page.should render(page_children_first_tags(%{by="breadcrumb"},true)).as('f')
+      page.should render(page_children_first_tags(%{by="breadcrumb" order="desc"},true)).as('g')
+    end
+
     it "should render nothing when no children exist" do
       page(:first).should render('<r:children:first:title />').as('')
     end
@@ -192,6 +211,15 @@ describe "Standard Tags" do
       page.should render(page_children_last_tags(%{order="desc"})).as('a')
       page.should render(page_children_last_tags(%{by="breadcrumb"})).as('g')
       page.should render(page_children_last_tags(%{by="breadcrumb" order="desc"})).as('f')
+    end
+
+    it 'should receive scope set in <r:children> tag' do
+      page.should render(page_children_last_tags(nil,true)).as('j')
+      page.should render(page_children_last_tags(%{limit="5"},true)).as('e')
+      page.should render(page_children_last_tags(%{offset="3" limit="5"},true)).as('h')
+      page.should render(page_children_last_tags(%{order="desc"},true)).as('a')
+      page.should render(page_children_last_tags(%{by="breadcrumb"},true)).as('g')
+      page.should render(page_children_last_tags(%{by="breadcrumb" order="desc"},true)).as('f')
     end
 
     it "should render nothing when no children exist" do
@@ -917,19 +945,31 @@ describe "Standard Tags" do
       end
     end
 
-    def page_children_each_tags(attr = nil)
+    def page_children_each_tags(attr = nil, options_in_children_tag=false)
       attr = ' ' + attr unless attr.nil?
-      "<r:children:each#{attr}><r:slug /> </r:children:each>"
+      if options_in_children_tag
+        "<r:children#{attr}><r:each><r:slug /> </r:each></r:children>"
+      else
+        "<r:children:each#{attr}><r:slug /> </r:children:each>"
+      end
     end
 
-    def page_children_first_tags(attr = nil)
+    def page_children_first_tags(attr = nil, options_in_children_tag=false)
       attr = ' ' + attr unless attr.nil?
-      "<r:children:first#{attr}><r:slug /></r:children:first>"
+      if options_in_children_tag
+        "<r:children#{attr}><r:first><r:slug /></r:first></r:children>"
+      else
+        "<r:children:first#{attr}><r:slug /></r:children:first>"
+      end
     end
 
-    def page_children_last_tags(attr = nil)
+    def page_children_last_tags(attr = nil, options_in_children_tag=false)
       attr = ' ' + attr unless attr.nil?
-      "<r:children:last#{attr}><r:slug /></r:children:last>"
+      if options_in_children_tag
+        "<r:children#{attr}><r:last><r:slug /></r:last></r:children>"
+      else
+        "<r:children:last#{attr}><r:slug /></r:children:last>"
+      end
     end
 
     def page_eachable_children(page)

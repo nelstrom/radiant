@@ -226,6 +226,12 @@ describe "Standard Tags" do
       page(:first).should render('<r:children:last:title />').as('')
     end
   end
+  
+  describe "<r:children> with options" do
+    it " should combine conditions from <r:children by='title'> and <r:each offset='1'>" do
+      page.should render("<r:children by='title'><r:first><r:title/>* </r:first><r:each offset='1'><r:title/> </r:each></r:children>").as('a* b c d e f g h i j ')
+    end
+  end
 
   describe "<r:content>" do
     it "should render the 'body' part by default" do

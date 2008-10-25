@@ -67,6 +67,7 @@ module StandardTags
     
   }
   tag 'children' do |tag|
+    tag.locals.filter_attributes = tag.attr
     tag.locals.options = children_find_options(tag)
     tag.locals.children = tag.locals.page.children
     tag.locals.children_filtered = tag.locals.page.children.find(:all, tag.locals.options.clone)
@@ -89,6 +90,7 @@ module StandardTags
     <pre><code><r:children:first>...</r:children:first></code></pre>
   }
   tag 'children:first' do |tag|
+    inherit_filter_attributes(tag)
     options = children_find_options(tag)
     children = children_filtered(tag,options)
     if first = children.first
@@ -106,6 +108,7 @@ module StandardTags
     <pre><code><r:children:last>...</r:children:last></code></pre>
   }
   tag 'children:last' do |tag|
+    inherit_filter_attributes(tag)
     options = children_find_options(tag)
     children = children_filtered(tag,options)
     if last = children.last
@@ -128,6 +131,7 @@ module StandardTags
     </code></pre>
   }
   tag 'children:each' do |tag|
+    inherit_filter_attributes(tag)
     options = children_find_options(tag)
     children = children_filtered(tag,options)
     result = []
@@ -872,6 +876,10 @@ module StandardTags
       else
         tag.locals.children.find(:all, options)
       end
+    end
+    
+    def inherit_filter_attributes(tag)
+      tag.attr.reverse_merge!(tag.locals.filter_attributes)
     end
 
     def children_find_options(tag)

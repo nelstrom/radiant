@@ -229,7 +229,7 @@ describe "Standard Tags" do
   
   describe "<r:children> with options" do
     it " should combine conditions from <r:children by='title'> and <r:each offset='1'>" do
-      page.should render("<r:children by='title'><r:first><r:title/>* </r:first><r:each offset='1'><r:title/> </r:each></r:children>").as('a* b c d e f g h i j ')
+      page.should render("<r:children by='title' order='desc'><r:first><r:title/>* </r:first><r:each offset='1' limit='10'><r:title/> </r:each></r:children>").as('j* i h g f e d c b a ')
     end
   end
 

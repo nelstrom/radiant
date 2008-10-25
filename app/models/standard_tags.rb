@@ -35,10 +35,36 @@ module StandardTags
 
   desc %{
     Gives access to a page's children.
+    
+    By default, all child pages with status="published" are returned in 
+    ascending order of publishing date. The order can be reversed by including
+    the attribute @order="desc"@. The pages may also be sorted by any other
+    field using the @by@ attribute (e.g. @by="title"@). If you want to fetch
+    pages whose status is not published, you can use the @status@ attribute.
+    The @limit@ and @offset@ attributes can also be used to modify the result
+    set.
 
     *Usage:*
     
-    <pre><code><r:children>...</r:children></code></pre>
+    <pre><code><r:children [by="attribute"]  [order="asc|desc"]
+       [offset="number"] [limit="number"]
+       [status="draft|reviewed|published|hidden|all"]>
+     ...
+    </r:children></code></pre>
+    
+    Note that all of the same options are available in the @<r:each/>@, 
+    @<r:first/>@ and @<r:last/>@ tags. So the following examples are equivalent:
+    
+    <pre><code><r:children by="title">
+      <r:each>
+        <r:title/>
+      </r:each>
+    </r:children>
+    
+    <r:children:each by="title">
+      <r:title/>
+    </r:children:each></code></pre>
+    
   }
   tag 'children' do |tag|
     tag.locals.options = children_find_options(tag)
@@ -56,7 +82,7 @@ module StandardTags
 
   desc %{
     Returns the first child. Inside this tag all page attribute tags are mapped to
-    the first child. Takes the same ordering options as @<r:children:each>@.
+    the first child. Takes the same ordering options as @<r:children>@.
 
     *Usage:*
     
@@ -73,7 +99,7 @@ module StandardTags
 
   desc %{
     Returns the last child. Inside this tag all page attribute tags are mapped to
-    the last child. Takes the same ordering options as @<r:children:each>@.
+    the last child. Takes the same ordering options as @<r:children>@.
 
     *Usage:*
     
@@ -90,7 +116,8 @@ module StandardTags
 
   desc %{
     Cycles through each of the children. Inside this tag all page attribute tags
-    are mapped to the current child page.
+    are mapped to the current child page. Takes the same ordering options as 
+    @<r:children>@.
 
     *Usage:*
     

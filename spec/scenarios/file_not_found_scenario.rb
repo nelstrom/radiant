@@ -1,6 +1,6 @@
 require 'file_not_found_page'
-class CustomFileNotFoundPage < FileNotFoundPage
-end
+# class CustomFileNotFoundPage < FileNotFoundPage
+# end
 
 class FileNotFoundScenario < Scenario::Base
   uses :home_page

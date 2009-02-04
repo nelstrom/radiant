@@ -51,6 +51,15 @@ class PagesScenario < Scenario::Base
       create_page_part "games"
       create_page "Guests"
     end
+    create_page "Secretparent" do
+      create_page "Hidden child", :status_id => Status[:hidden].id
+    end
+    create_page "Virtualparent" do
+      create_page "Month Archive", :class_name => "VirtualPage", :virtual => true
+      create_page "Article A"
+      create_page "Article B"
+      create_page "Article C"
+    end
   end
   
 end

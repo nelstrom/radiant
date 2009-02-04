@@ -166,9 +166,35 @@ describe "Standard Tags" do
       page(:news).should render(tags).as(expected)
     end
   end
+  
+  describe "<r:children:count>" do
+    it 'should render the number of children of the current page' do
+      page(:parent).should render('<r:children:count />').as('3')
+    end
 
-  it '<r:children:count> should render the number of children of the current page' do
-    page(:parent).should render('<r:children:count />').as('3')
+    it "should count the current page's children, excluding drafts" do
+      page(:news).should render('<r:children:count />').as('4')
+    end
+
+    it "should count all the current page's children (including drafts)" do
+      page(:news).should render('<r:children:count status="all"/>').as('5')
+    end
+
+    it "should count only drafts of the current page's children" do
+      page(:news).should render('<r:children:count status="draft"/>').as('1')
+    end
+
+    it "should count the current page's children, excluding hidden pages" do
+      page(:secretparent).should render('<r:children:count />').as('0')
+    end
+
+    it "should count the current page's children, excluding virtual pages" do
+      page(:virtualparent).should render('<r:children:count />').as('3')
+    end
+
+    it "should count the current page's children, excluding virtual pages" do
+      page(:virtualparent).should render('<r:children:count status="all" />').as('3')
+    end
   end
 
   describe "<r:children:first>" do

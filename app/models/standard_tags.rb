@@ -78,7 +78,10 @@ module StandardTags
     Renders the total number of children.
   }
   tag 'children:count' do |tag|
-    tag.locals.children.count
+    inherit_filter_attributes(tag)
+    options = children_find_options(tag)
+    children = children_filtered(tag,options)
+    children.size
   end
 
   desc %{
